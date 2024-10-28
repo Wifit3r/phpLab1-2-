@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table border="1px">
+    <thead>
+        Центер Зайнятосі
+    </thead>
+    <tr>
+        <td>
+            Id
+        </td>
+        <td>
+            Ім'я
+        </td>
+        <td>
+            Стать
+        </td>
+        <td>
+            Рік народження
+        </td>
+        <td>
+            Освіта
+        </td>
+        <td>
+            Спеціалізація
+        </td>
+        <td>
+            Дата взяття на облік
+        </td>
+    </tr>
+    <tbody>
+    <?php DisplayEmploymentCenter(); ?>
+    </tbody>
+</table>
+
+
+<form action="/" method="POST">
+    <label for="id">Id:</label>
+    <input type="text" id="id" name="id">
+    <label for="name">Ім'я:</label>
+    <input type="text" id="name" name="name">
+    <label for="sex">Стать:</label>
+    <input type="text" id="sex" name="sex">
+    <label for="bYear">Рік народження:</label>
+    <input type="text" id="bYear" name="bYear">
+    <label for="Education">Освіта:</label>
+    <input type="text" id="Education" name="Education">
+    <label for="spec">Спеціалізація:</label>
+    <input type="text" id="spec" name="spec">
+    <label for="acc">Рік взяття на облік:</label>
+    <input type="text" id="acc" name="acc">
+    <button type="submit" >Додати</button>
+</form>
+<form action="/" method="POST">
+    <label for="id">Id:</label>
+    <input type="text" id="id" name="id">
+    <label for="name">Ім'я:</label>
+    <input type="text" id="name" name="name">
+    <button>Фільтрувати</button>
+</form>
+
+</body>
+
+</html>
+<style>
+    form{
+        display: flex;
+        flex-direction:column ;
+        width: 25vw;
+    }
+</style>
