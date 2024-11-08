@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "name": "Іваненко І.І.",
+        "gender": "male",
+        "birth_year": 1957,
+        "education": "вища",
+        "specialization": "інженер",
+        "registration_date": "2022-05-15"
+    },
+    {
+        "id": 2,
+        "name": "й",
+        "gender": "male",
+        "birth_year": "1",
+        "education": "1й",
+        "specialization": "й",
+        "registration_date": "1111-11-11"
+    },
+    {
+        "id": 3,
+        "name": "й",
+        "gender": "male",
+        "birth_year": "1",
+        "education": "й",
+        "specialization": "й",
+        "registration_date": "1111-11-11"
+    },
+    {
+        "id": 4,
+        "name": "й11",
+        "gender": "male",
+        "birth_year": "111",
+        "education": "ййй",
+        "specialization": "йй",
+        "registration_date": "2211-11-11"
+    }
+]

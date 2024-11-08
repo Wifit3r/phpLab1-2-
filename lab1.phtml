@@ -1,0 +1,202 @@
+<?php
+session_start();
+
+// Шлях до файлу для зберігання даних
+$dataFile = 'data.json';
+
+// Функція для збереження масиву у файл
+function saveDataToFile($data, $file) {
+    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+// Функція для завантаження масиву з файлу
+function loadDataFromFile($file) {
+    if (file_exists($file)) {
+        $data = json_decode(file_get_contents($file), true);
+        return $data ? $data : [];
+    }
+    return [];
+}
+
+// Завантаження даних з файлу при першому запуску
+if (!isset($_SESSION['employmentCenter'])) {
+    $_SESSION['employmentCenter'] = loadDataFromFile($dataFile);
+}
+
+// Функція додавання нової особи
+function addPerson($name, $gender, $birth_year, $education, $specialization, $registration_date) {
+    global $dataFile;
+    $newPerson = [
+        "id" => count($_SESSION['employmentCenter']) + 1,
+        "name" => $name,
+        "gender" => $gender,
+        "birth_year" => $birth_year,
+        "education" => $education,
+        "specialization" => $specialization,
+        "registration_date" => $registration_date
+    ];
+    $_SESSION['employmentCenter'][] = $newPerson;
+    saveDataToFile($_SESSION['employmentCenter'], $dataFile); // Збереження у файл після додавання
+}
+
+// Функція отримання всіх записів
+function getAllPeople() {
+    return $_SESSION['employmentCenter'];
+}
+
+// Функція отримання пенсіонерів за статтю
+function getPensionersByGender($gender) {
+    $pensioners = [];
+    $currentYear = date("Y");
+
+    foreach ($_SESSION['employmentCenter'] as $person) {
+        $age = $currentYear - $person["birth_year"];
+        if ($person["gender"] === $gender &&
+            (($gender === "male" && $age >= 65) || ($gender === "female" && $age >= 60))) {
+            $pensioners[] = $person;
+        }
+    }
+    return $pensioners;
+}
+
+// Функція валідації даних
+function validatePersonData($data) {
+    if (empty($data['name'])) {
+        return "ПІБ не може бути порожнім.";
+    }
+    if (!is_numeric($data['birth_year']) || $data['birth_year'] <= 0) {
+        return "Рік народження має бути числом.";
+    }
+    if (!in_array($data['gender'], ["male", "female"])) {
+        return "Некоректне значення для статі.";
+    }
+    return true;
+}
+
+// Обробка додавання нової особи через форму
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['add_person'])) {
+    $data = [
+        'name' => $_POST['name'],
+        'gender' => $_POST['gender'],
+        'birth_year' => $_POST['birth_year'],
+        'education' => $_POST['education'],
+        'specialization' => $_POST['specialization'],
+        'registration_date' => $_POST['registration_date']
+    ];
+
+    $validationResult = validatePersonData($data);
+    if ($validationResult === true) {
+        addPerson($data['name'], $data['gender'], $data['birth_year'], $data['education'], $data['specialization'], $data['registration_date']);
+        $message = "Новий запис успішно додано!";
+    } else {
+        $message = $validationResult;
+    }
+}
+
+// Завантаження даних з файлу через форму
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['load_from_file'])) {
+    $_SESSION['employmentCenter'] = loadDataFromFile($dataFile);
+    $message = "Дані успішно завантажені з файлу.";
+}
+
+?>
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Центр зайнятості</title>
+</head>
+<body>
+
+<h2>Додати нову особу</h2>
+<form method="post" action="">
+    <label>ПІБ: <input type="text" name="name" required></label><br>
+    <label>Стать:
+        <select name="gender">
+            <option value="male">Чоловік</option>
+            <option value="female">Жінка</option>
+        </select>
+    </label><br>
+    <label>Рік народження: <input type="number" name="birth_year" required></label><br>
+    <label>Освіта: <input type="text" name="education" required></label><br>
+    <label>Спеціальність: <input type="text" name="specialization" required></label><br>
+    <label>Дата прийняття на облік: <input type="date" name="registration_date" required></label><br>
+    <button type="submit" name="add_person">Додати</button>
+</form>
+
+<form method="post" action="">
+    <button type="submit" name="load_from_file">Завантажити дані з файлу</button>
+</form>
+
+<?php if (isset($message)) echo "<p>$message</p>"; ?>
+
+<h2>Список безробітних</h2>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>ПІБ</th>
+        <th>Стать</th>
+        <th>Рік народження</th>
+        <th>Освіта</th>
+        <th>Спеціальність</th>
+        <th>Дата прийняття на облік</th>
+    </tr>
+    <?php foreach (getAllPeople() as $person): ?>
+        <tr>
+            <td><?= $person["id"] ?></td>
+            <td><?= $person["name"] ?></td>
+            <td><?= $person["gender"] ?></td>
+            <td><?= $person["birth_year"] ?></td>
+            <td><?= $person["education"] ?></td>
+            <td><?= $person["specialization"] ?></td>
+            <td><?= $person["registration_date"] ?></td>
+        </tr>
+    <?php endforeach; ?>
+</table>
+
+<h2>Фільтрувати безробітних пенсійного віку</h2>
+<form method="get" action="">
+    <label>Стать:
+        <select name="gender">
+            <option value="male">Чоловік</option>
+            <option value="female">Жінка</option>
+        </select>
+    </label>
+    <button type="submit" name="filter_pensioners">Фільтрувати</button>
+</form>
+
+<?php
+if (isset($_GET['filter_pensioners']) && isset($_GET['gender'])) {
+    $gender = $_GET['gender'];
+    $pensioners = getPensionersByGender($gender);
+    ?>
+    <h3>Пенсіонери (<?= $gender === "male" ? "Чоловіки" : "Жінки" ?>)</h3>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>ПІБ</th>
+            <th>Стать</th>
+            <th>Рік народження</th>
+            <th>Освіта</th>
+            <th>Спеціальність</th>
+            <th>Дата прийняття на облік</th>
+        </tr>
+        <?php foreach ($pensioners as $person): ?>
+            <tr>
+                <td><?= $person["id"] ?></td>
+                <td><?= $person["name"] ?></td>
+                <td><?= $person["gender"] ?></td>
+                <td><?= $person["birth_year"] ?></td>
+                <td><?= $person["education"] ?></td>
+                <td><?= $person["specialization"] ?></td>
+                <td><?= $person["registration_date"] ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+    <?php
+}
+?>
+
+</body>
+</html>
